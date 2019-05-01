@@ -17,6 +17,10 @@
         android:name="nk.sixstrings.ui.play.PlayFragment"
         android:label="play_fragment"
         tools:layout="@layout/play_fragment">
+        <argument
+            android:name="song_id"
+            app:argType="string"
+            android:defaultValue="00000000-0000-0000-0000-000000000000" />
         <action
             android:id="@+id/action_playFragment_pop"
             app:popUpTo="@id/playFragment"

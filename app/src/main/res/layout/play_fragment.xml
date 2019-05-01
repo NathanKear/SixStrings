@@ -7,6 +7,7 @@
         tools:context=".ui.play.PlayFragment">
 
     <TextView
+            android:id="@+id/song_id"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="Hello"/>

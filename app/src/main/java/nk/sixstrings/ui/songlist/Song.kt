@@ -1,3 +1,5 @@
 package nk.sixstrings.ui.songlist
 
-data class Song(val name: String, val artist: String)
+import java.util.*
+
+data class Song(val name: String, val artist: String, val id: String)
