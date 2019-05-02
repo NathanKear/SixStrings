@@ -50,6 +50,8 @@ class PlayFragment : Fragment() {
         }
 
         override fun draw(canvas: Canvas) {
+
+
             val tab = """
                 |----2---0-2-----|--0-------------|--------------|--0-----2-------|2--2--2-0-2-----|--0-------------|----------------|------|----2----(2)---(2)---(2)--------|----|
                 |----0---0-0-0---|3---2-0---------|--0-----2-----|4---4---------0-|---0--0-0-0---3-|----2---0-------|----0-------2---|------|----0-----0-----0-----0---0--0--|0---|
@@ -59,16 +61,30 @@ class PlayFragment : Fragment() {
                 |----------------|--------------0-|------0-----0-|----------------|----------------|----------------|0-------0-------|------|--0-----0-----0-----0---0-------|--0-|
             """.trimIndent()
 
-            canvas.drawTab(tab)
+            canvas.drawTab(tab, 0.5f)
         }
 
-        fun Canvas.drawTab(tab: String) {
+        fun Canvas.drawTab(tab: String, progress: Float) {
+
+            val strings = tab.split("\n")
+            val longestString = strings.maxBy {
+                it.length
+            }
+
+            val startX = bounds.width().toFloat()
+            val endX = -tabTextPaint.measureText(longestString)
+            val xPos = linearlyInterpolate(startX, endX, progress)
+
             tab.split("\n").forEachIndexed { index, string ->
                 this.drawText(string,
-                        0f,
+                        xPos,
                         tabTextPaint.textSize * index,
                         tabTextPaint)
             }
+        }
+
+        fun linearlyInterpolate(x0: Float, x1: Float, pos: Float): Float {
+            return x0 + ((x1 - x0) * pos)
         }
 
         override fun setAlpha(alpha: Int) {
