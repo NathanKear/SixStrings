@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.song_list_item_row.view.*
 import nk.sixstrings.R
+import nk.sixstrings.models.Song
 
 class SongListRecyclerViewAdapter(private val songs: List<Song>, private val onClickListener: (Song) -> Unit, private val context: Context) : RecyclerView.Adapter<SongListRecyclerViewAdapter.SongViewHolder>() {
 

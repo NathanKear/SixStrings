@@ -1,4 +1,4 @@
-package nk.sixstrings.ui.songlist
+package nk.sixstrings.models
 
 import java.util.*
 
