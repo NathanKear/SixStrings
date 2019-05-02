@@ -1,14 +1,20 @@
 package nk.sixstrings.ui.play
 
+import android.animation.ValueAnimator
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.os.Handler
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
+import androidx.core.animation.doOnEnd
 import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.play_fragment.*
 
@@ -16,6 +22,7 @@ import nk.sixstrings.R
 import nk.sixstrings.models.Song
 import nk.sixstrings.models.TabInfo
 import nk.sixstrings.util.OrdinalNumberSuffix
+import kotlin.math.roundToInt
 
 class PlayFragment : Fragment() {
 
@@ -36,6 +43,16 @@ class PlayFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        val handler = Handler()
+        val runnable: Runnable = object: Runnable {
+            override fun run() {
+                viewModel.tick()
+                handler.postDelayed(this, 16)
+            }
+        }
+        handler.postDelayed(runnable, 16)
+
 
         val songId = PlayFragmentArgs.fromBundle(requireArguments()).songId
         // TODO: Use the ViewModel
@@ -59,20 +76,98 @@ class PlayFragment : Fragment() {
             }
         })
 
+        viewModel.playProgress.observe(this, Observer {
+            play_progress.progress = (it * 1000).roundToInt()
+        })
+
         play_progress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+
+                if (!fromUser) return
+
                 playProgress = progress / 1000f
+                viewModel.setProgress(playProgress)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                viewModel.stop()
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                viewModel.play()
             }
-
         })
+
+        viewModel.playState.observe(this, Observer {
+
+            if (it is PlayViewModel.PlayState.Play) {
+
+                play_pause_button.setOnClickListener { view ->
+                    viewModel.stop()
+
+                    ValueAnimator.ofFloat(1f, 0f).apply {
+                        duration = 105L
+                        interpolator = AccelerateInterpolator()
+                        doOnEnd {
+                            play_pause_button.setImageResource(android.R.drawable.ic_media_play)
+
+                            ValueAnimator.ofFloat(0f, 1f).apply {
+                                duration = 105L
+                                interpolator = DecelerateInterpolator()
+
+                                addUpdateListener {
+                                    play_pause_button.scaleX = it.animatedValue as Float
+                                    play_pause_button.scaleY = it.animatedValue as Float
+                                }
+
+                                start()
+                            }
+                        }
+
+                        addUpdateListener {
+                            play_pause_button.scaleX = it.animatedValue as Float
+                            play_pause_button.scaleY = it.animatedValue as Float
+                        }
+
+                        start()
+                    }
+                }
+            } else if (it is PlayViewModel.PlayState.Stop) {
+
+                play_pause_button.setOnClickListener { view ->
+                    viewModel.play()
+
+                    ValueAnimator.ofFloat(1f, 0f).apply {
+                        duration = 105L
+                        interpolator = AccelerateInterpolator()
+                        doOnEnd {
+                            play_pause_button.setImageResource(android.R.drawable.ic_media_pause)
+
+                            ValueAnimator.ofFloat(0f, 1f).apply {
+                                duration = 105L
+                                interpolator = DecelerateInterpolator()
+
+                                addUpdateListener {
+                                    play_pause_button.scaleX = it.animatedValue as Float
+                                    play_pause_button.scaleY = it.animatedValue as Float
+                                }
+
+                                start()
+                            }
+                        }
+
+                        addUpdateListener {
+                            play_pause_button.scaleX = it.animatedValue as Float
+                            play_pause_button.scaleY = it.animatedValue as Float
+                        }
+
+                        start()
+                    }
+                }
+            }
+        })
+
+
     }
 
     private fun updateSong(song: Song) {
@@ -97,7 +192,7 @@ class PlayFragment : Fragment() {
     class TabDrawable(private val tab: String, private val progress: Float) : Drawable() {
         private val tabTextPaint: Paint = Paint().apply {
             setARGB(255, 0, 0, 0)
-            textSize = 50f
+            textSize = 100f
             typeface = Typeface.MONOSPACE
         }
 
