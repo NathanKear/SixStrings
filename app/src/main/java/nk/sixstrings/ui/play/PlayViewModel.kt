@@ -2,28 +2,48 @@ package nk.sixstrings.ui.play
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import nk.sixstrings.infrastructure.PlayInteractor
 import nk.sixstrings.models.Song
 import nk.sixstrings.models.TabInfo
 import nk.sixstrings.util.CombinedLiveData
 import nk.sixstrings.util.extensions.clamp
+import java.util.concurrent.TimeUnit
 
 class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
 
     sealed class PlayState {
         object Play : PlayState()
         object Stop : PlayState()
+        object Finished : PlayState()
     }
+
+    private val startProgress = 0.0f
+    private val endProgress = 1.0f
+    private val progressTickStep = 0.001f
 
     val song = MutableLiveData<Song>()
     val playState = MutableLiveData<PlayState>()
     val playProgress = MutableLiveData<Float>()
     val tabInfo = MutableLiveData<TabInfo>()
     val tabPlay = CombinedLiveData<Float, TabInfo, Pair<Float?, TabInfo?>>(playProgress, tabInfo) { playProgress, tabInfo -> Pair(playProgress, tabInfo) }
+    private val timer = Observable.interval(17, TimeUnit.MILLISECONDS)
 
     init {
         playState.value = PlayState.Stop
-        playProgress.value = 0.0f
+        playProgress.value = startProgress
+
+        fun tick(i: Long) {
+
+            if (playState.value != PlayState.Play) return
+
+            playProgress.value?.let {
+                setProgress(it + progressTickStep)
+            }
+        }
+
+        timer.observeOn(AndroidSchedulers.mainThread()).subscribe(::tick)
     }
 
     fun loadSong(songId: String) {
@@ -43,18 +63,12 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
 
     fun setProgress(progress: Float) {
 
-        if (progress >= 1f) stop()
-
-        val progress = progress.clamp(0f, 1f)
-        playProgress.value = progress
-    }
-
-    fun tick() {
-        // if (playState.value == PlayState.Stop) return
-
-        playProgress.value?.let {
-            setProgress(it + 0.001f)
+        if (progress >= endProgress) {
+            playState.value = PlayState.Finished
         }
+
+        val progress = progress.clamp(startProgress, endProgress)
+        playProgress.postValue(progress)
     }
 
     fun play() {
@@ -63,5 +77,10 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
 
     fun stop() {
         playState.value = PlayState.Stop
+    }
+
+    fun replay() {
+        playState.value = PlayState.Play
+        playProgress.value = startProgress
     }
 }

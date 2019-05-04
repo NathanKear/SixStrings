@@ -19,10 +19,6 @@ import javax.inject.Inject
 
 class SongListFragment : Fragment() {
 
-    companion object {
-        fun newInstance() = SongListFragment()
-    }
-
     @Inject
     lateinit var vm: SongListViewModel
 
