@@ -15,7 +15,6 @@ class AnimatedFloatingActionButton(context: Context, attrs: AttributeSet) : Floa
     @Override
     override fun setImageResource(resId: Int) {
         super.setImageResource(resId)
-
         imageResourceId = resId
     }
 

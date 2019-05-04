@@ -15,8 +15,10 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
 
     sealed class PlayState {
         object Play : PlayState()
-        object Stop : PlayState()
+        object Pause : PlayState()
         object Finished : PlayState()
+        object DraggedWhilePaused : PlayState()
+        object DraggedWhilePlaying : PlayState()
     }
 
     private val startProgress = 0.0f
@@ -31,7 +33,7 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
     private val timer = Observable.interval(17, TimeUnit.MILLISECONDS)
 
     init {
-        playState.value = PlayState.Stop
+        playState.value = PlayState.Pause
         playProgress.value = startProgress
 
         fun tick(i: Long) {
@@ -63,7 +65,7 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
 
     fun setProgress(progress: Float) {
 
-        if (progress >= endProgress) {
+        if (progress >= endProgress && (playState.value == PlayState.Play || playState.value == PlayState.Pause)) {
             playState.value = PlayState.Finished
         }
 
@@ -75,12 +77,26 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
         playState.value = PlayState.Play
     }
 
-    fun stop() {
-        playState.value = PlayState.Stop
+    fun pause() {
+        playState.value = PlayState.Pause
     }
 
     fun replay() {
         playState.value = PlayState.Play
         playProgress.value = startProgress
+    }
+
+    fun dragProgress() {
+        when (playState.value) {
+            PlayState.Play -> playState.value = PlayState.DraggedWhilePlaying
+            PlayState.Pause, PlayState.Finished -> playState.value = PlayState.DraggedWhilePaused
+        }
+    }
+
+    fun releaseProgress() {
+        when (playState.value) {
+            PlayState.DraggedWhilePlaying -> playState.value = PlayState.Play
+            PlayState.DraggedWhilePaused -> playState.value = PlayState.Pause
+        }
     }
 }

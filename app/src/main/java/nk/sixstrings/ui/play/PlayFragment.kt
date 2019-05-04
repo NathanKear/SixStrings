@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import dagger.android.support.AndroidSupportInjection
 import kotlinx.android.synthetic.main.play_fragment.*
+import kotlinx.android.synthetic.main.play_fragment.view.*
 import nk.sixstrings.R
 import nk.sixstrings.models.Song
 import nk.sixstrings.models.TabInfo
@@ -31,7 +32,9 @@ class PlayFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.play_fragment, container, false)
+        return inflater.inflate(R.layout.play_fragment, container, false).apply {
+            play_pause_button.setImageResource(R.drawable.ic_play_arrow_white_24dp)
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -71,11 +74,11 @@ class PlayFragment : Fragment() {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                vm.stop()
+                vm.dragProgress()
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                vm.play()
+                vm.releaseProgress()
             }
         })
 
@@ -86,10 +89,10 @@ class PlayFragment : Fragment() {
                     play_pause_button.animateToNextImage(R.drawable.ic_pause_white_24dp, 200)
 
                     play_pause_button.setOnClickListener {
-                        vm.stop()
+                        vm.pause()
                     }
                 }
-                is PlayViewModel.PlayState.Stop -> {
+                is PlayViewModel.PlayState.Pause -> {
                     play_pause_button.animateToNextImage(R.drawable.ic_play_arrow_white_24dp, 200)
 
                     play_pause_button.setOnClickListener {
@@ -122,7 +125,7 @@ class PlayFragment : Fragment() {
     }
 
     private fun updateTab(tabInfo: TabInfo, playProgress: Float) {
-        val tabDrawing = TabDrawable(requireContext(), tabInfo.tab, playProgress)
+        val tabDrawing = TabDrawable(requireContext(), tabInfo.tab, playProgress, song_tab.height.toFloat())
         song_tab.setImageDrawable(tabDrawing)
     }
 }
