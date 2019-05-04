@@ -16,12 +16,15 @@ import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
 import androidx.core.animation.doOnEnd
 import androidx.lifecycle.Observer
+import dagger.android.support.AndroidSupportInjection
 import kotlinx.android.synthetic.main.play_fragment.*
 
 import nk.sixstrings.R
 import nk.sixstrings.models.Song
 import nk.sixstrings.models.TabInfo
+import nk.sixstrings.ui.songlist.SongListViewModel
 import nk.sixstrings.util.OrdinalNumberSuffix
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
 class PlayFragment : Fragment() {
@@ -30,8 +33,15 @@ class PlayFragment : Fragment() {
         fun newInstance() = PlayFragment()
     }
 
-    private lateinit var viewModel: PlayViewModel
+    @Inject
+    lateinit var vm: PlayViewModel
+
     private var playProgress: Float = 0.0f
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        AndroidSupportInjection.inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,27 +57,25 @@ class PlayFragment : Fragment() {
         val handler = Handler()
         val runnable: Runnable = object: Runnable {
             override fun run() {
-                viewModel.tick()
+                vm.tick()
                 handler.postDelayed(this, 16)
             }
         }
         handler.postDelayed(runnable, 16)
 
-
         val songId = PlayFragmentArgs.fromBundle(requireArguments()).songId
-        // TODO: Use the ViewModel
 
-        viewModel = ViewModelProviders.of(this).get(PlayViewModel::class.java)
+        vm.loadSong(songId)
 
-        viewModel.song.observe(this, Observer {
+        vm.song.observe(this, Observer {
             updateSong(it)
         })
 
-        viewModel.tabInfo.observe(this, Observer {
+        vm.tabInfo.observe(this, Observer {
             updateTabInfo(it)
         })
 
-        viewModel.tabPlay.observe(this, Observer {
+        vm.tabPlay.observe(this, Observer {
             val playProgress = it.first
             val tabInfo = it.second
 
@@ -76,7 +84,7 @@ class PlayFragment : Fragment() {
             }
         })
 
-        viewModel.playProgress.observe(this, Observer {
+        vm.playProgress.observe(this, Observer {
             play_progress.progress = (it * 1000).roundToInt()
         })
 
@@ -86,24 +94,24 @@ class PlayFragment : Fragment() {
                 if (!fromUser) return
 
                 playProgress = progress / 1000f
-                viewModel.setProgress(playProgress)
+                vm.setProgress(playProgress)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                viewModel.stop()
+                vm.stop()
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                viewModel.play()
+                vm.play()
             }
         })
 
-        viewModel.playState.observe(this, Observer {
+        vm.playState.observe(this, Observer {
 
             if (it is PlayViewModel.PlayState.Play) {
 
                 play_pause_button.setOnClickListener { view ->
-                    viewModel.stop()
+                    vm.stop()
 
                     ValueAnimator.ofFloat(1f, 0f).apply {
                         duration = 105L
@@ -135,7 +143,7 @@ class PlayFragment : Fragment() {
             } else if (it is PlayViewModel.PlayState.Stop) {
 
                 play_pause_button.setOnClickListener { view ->
-                    viewModel.play()
+                    vm.play()
 
                     ValueAnimator.ofFloat(1f, 0f).apply {
                         duration = 105L

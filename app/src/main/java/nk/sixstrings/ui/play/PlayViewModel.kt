@@ -1,13 +1,14 @@
 package nk.sixstrings.ui.play
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModel
+import nk.sixstrings.infrastructure.PlayInteractor
 import nk.sixstrings.models.Song
 import nk.sixstrings.models.TabInfo
 import nk.sixstrings.util.CombinedLiveData
 import nk.sixstrings.util.extensions.clamp
 
-class PlayViewModel : ViewModel() {
+class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
 
     sealed class PlayState {
         object Play : PlayState()
@@ -23,15 +24,21 @@ class PlayViewModel : ViewModel() {
     init {
         playState.value = PlayState.Stop
         playProgress.value = 0.0f
-        song.value = Song("Viðrar vel til loftárása", "Sigur Rós", "3fac9b17-802a-4e35-928b-cebaaa133566")
-        tabInfo.value = TabInfo("""
-                |----2---0-2-----|--0-------------|--------------|--0-----2-------|2--2--2-0-2-----|--0-------------|----------------|------|----2----(2)---(2)---(2)--------|----|
-                |----0---0-0-0---|3---2-0---------|--0-----2-----|4---4---------0-|---0--0-0-0---3-|----2---0-------|----0-------2---|------|----0-----0-----0-----0---0--0--|0---|
-                |----4---4-4-----|4-4-4-4-----4---|--2-----0-----|--0-----4---4---|---4--4-4-4---4-|--4-4---4-------|----2-------0---|------|----4-----4-----4-----4---2--2--|4---|
-                |------------4---|4---4-4-----4---|--2-----2-----|4---4-----------|--------------4-|----4---4---4---|----2-------2---|----2-|----4--4--4--4--4--4--4---2--2--|4---|
-                |--0---0-------0-|----------------|0---0-----0---|0-----0---0-----|-----0-0----0---|0-----0-------0-|--0---0---0-----|------|0-----0-----0-----0---------0-0-|----|
-                |----------------|--------------0-|------0-----0-|----------------|----------------|----------------|0-------0-------|------|--0-----0-----0-----0---0-------|--0-|
-            """)
+    }
+
+    fun loadSong(songId: String) {
+
+        fun getTabInfoSuccess(data: TabInfo) {
+            tabInfo.value = data
+        }
+
+        playInteractor.getTabInfo(songId).subscribe(::getTabInfoSuccess)
+
+        fun getSongSuccess(data: Song) {
+            song.value = data
+        }
+
+        playInteractor.getSong(songId).subscribe(::getSongSuccess)
     }
 
     fun setProgress(progress: Float) {
