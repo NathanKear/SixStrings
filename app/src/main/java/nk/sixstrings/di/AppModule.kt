@@ -5,13 +5,18 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import nk.sixstrings.infrastructure.SongListInteractor
+import nk.sixstrings.infrastructure.SongRepository
 import javax.inject.Provider
 import javax.inject.Singleton
 
 @Module
 class AppModule {
+
     @Provides
-    fun provideSongListInteractor() = SongListInteractor()
+    fun provideSongRepository() = SongRepository()
+
+    @Provides
+    fun provideSongListInteractor(songRepository: SongRepository) = SongListInteractor(songRepository)
 
     /* Singleton factory that searches generated map for specific provider and
         uses it to get a ViewModel instance */
