@@ -17,7 +17,7 @@
         app:layout_constraintBottom_toTopOf="@+id/play_progress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tuning" />
+        app:layout_constraintTop_toBottomOf="@id/hide_advance_play_options" />
 
     <SeekBar
         android:id="@+id/play_progress"
@@ -30,30 +30,6 @@
         app:layout_constraintBottom_toTopOf="@id/play_pause_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/capo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="24dp"
-        android:layout_marginTop="24dp"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/song_artist"
-        tools:text="Capo: 2" />
-
-    <TextView
-        android:id="@+id/tuning"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginRight="32dp"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
-        app:layout_constraintLeft_toRightOf="@id/capo"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/song_artist"
-        tools:text="Standard (eBGDAE)" />
 
     <TextView
         android:id="@+id/song_name"
@@ -82,6 +58,86 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/song_name"
         tools:text="Pink Floyd" />
+
+    <TextView
+        android:id="@+id/hide_advance_play_options"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/advance_options_collapsible"
+        tools:text="Hide Options..." />
+
+    <TextView
+        android:id="@+id/capo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_marginTop="24dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/song_artist"
+        tools:text="Capo: 2" />
+
+    <TextView
+        android:id="@+id/tuning"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginRight="32dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
+        app:layout_constraintLeft_toRightOf="@id/capo"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/song_artist"
+        tools:text="Standard (eBGDAE)" />
+
+    <nk.sixstrings.common.AnimatedExpandableConstraintLayout
+        android:id="@+id/advance_options_collapsible"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:background="#EEEEEE"
+        android:clipChildren="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/capo">
+
+        <TextView
+            android:id="@+id/play_difficulty"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="8dp"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/play_speed"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Easy" />
+
+        <TextView
+            android:id="@+id/play_speed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="8dp"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/play_difficulty"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Fast" />
+
+    </nk.sixstrings.common.AnimatedExpandableConstraintLayout>
 
     <nk.sixstrings.common.AnimatedFloatingActionButton
         android:id="@+id/play_pause_button"

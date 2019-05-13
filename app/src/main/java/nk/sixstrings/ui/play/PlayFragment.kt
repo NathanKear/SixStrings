@@ -1,10 +1,14 @@
 package nk.sixstrings.ui.play
 
+import android.animation.LayoutTransition
+import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.constraintlayout.widget.ConstraintSet.WRAP_CONTENT
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import dagger.android.support.AndroidSupportInjection
@@ -42,7 +46,48 @@ class PlayFragment : Fragment() {
 
         val songId = PlayFragmentArgs.fromBundle(requireArguments()).songId
 
+        play_speed.text = "Fast"
+        play_difficulty.text = "Easy"
+
+//        @SuppressLint("ObsoleteSdkInt")
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//            advance_options_collapsible.let {
+//                it.layoutTransition
+//                    .enableTransitionType(LayoutTransition.CHANGING)
+//                it.layoutTransition.setDuration(300)
+//            }
+//        }
+
         vm.loadSong(songId)
+
+        observeViewControls()
+        observeViewModel()
+    }
+
+    private fun observeViewControls() {
+        hide_advance_play_options.setOnClickListener {
+            vm.toggleOptionsMenu()
+        }
+
+        play_progress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+
+                if (!fromUser) return
+
+                vm.setProgress(progress / 1000f)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                vm.dragProgress()
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                vm.releaseProgress()
+            }
+        })
+    }
+
+    private fun observeViewModel() {
 
         vm.song.observe(this, Observer {
             updateSong(it)
@@ -63,23 +108,6 @@ class PlayFragment : Fragment() {
 
         vm.playProgress.observe(this, Observer {
             play_progress.progress = (it * 1000).roundToInt()
-        })
-
-        play_progress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-
-                if (!fromUser) return
-
-                vm.setProgress(progress / 1000f)
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                vm.dragProgress()
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                vm.releaseProgress()
-            }
         })
 
         vm.playState.observe(this, Observer {
@@ -105,6 +133,26 @@ class PlayFragment : Fragment() {
                     play_pause_button.setOnClickListener {
                         vm.replay()
                     }
+                }
+            }
+        })
+
+        vm.optionsMenuState.observe(this, Observer {
+
+
+
+            when(it) {
+                PlayViewModel.OptionsMenuState.Show -> {
+                    hide_advance_play_options.apply {
+                        text = "Hide Options..."
+                    }
+                    advance_options_collapsible.expand()
+                }
+                PlayViewModel.OptionsMenuState.Hide -> {
+                    hide_advance_play_options.apply {
+                        text = "Show Options..."
+                    }
+                    advance_options_collapsible.collapse()
                 }
             }
         })

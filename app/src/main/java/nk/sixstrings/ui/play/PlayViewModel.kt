@@ -21,6 +21,11 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
         object DraggedWhilePlaying : PlayState()
     }
 
+    sealed class OptionsMenuState {
+        object Show : OptionsMenuState()
+        object Hide : OptionsMenuState()
+    }
+
     private val startProgress = 0.0f
     private val endProgress = 1.0f
     private val progressTickStep = 0.001f
@@ -30,11 +35,13 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
     val playProgress = MutableLiveData<Float>()
     val tabInfo = MutableLiveData<TabInfo>()
     val tabPlay = CombinedLiveData<Float, TabInfo, Pair<Float?, TabInfo?>>(playProgress, tabInfo) { playProgress, tabInfo -> Pair(playProgress, tabInfo) }
+    val optionsMenuState = MutableLiveData<OptionsMenuState>()
     private val timer = Observable.interval(17, TimeUnit.MILLISECONDS)
 
     init {
         playState.value = PlayState.Pause
         playProgress.value = startProgress
+        optionsMenuState.value = OptionsMenuState.Hide
 
         fun tick(i: Long) {
 
@@ -97,6 +104,14 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
         when (playState.value) {
             PlayState.DraggedWhilePlaying -> playState.value = PlayState.Play
             PlayState.DraggedWhilePaused -> playState.value = PlayState.Pause
+        }
+    }
+
+    fun toggleOptionsMenu() {
+        optionsMenuState.value = when (optionsMenuState.value) {
+            OptionsMenuState.Show -> OptionsMenuState.Hide
+            OptionsMenuState.Hide -> OptionsMenuState.Show
+            null -> optionsMenuState.value
         }
     }
 }
