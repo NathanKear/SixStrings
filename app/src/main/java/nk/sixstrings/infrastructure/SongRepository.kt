@@ -1,10 +1,14 @@
 package nk.sixstrings.infrastructure
 
+import android.util.Log
+import com.google.firebase.firestore.FirebaseFirestore
 import io.reactivex.Single
 import nk.sixstrings.models.Song
 import nk.sixstrings.models.TabInfo
 
 class SongRepository {
+
+    private val db by lazy { FirebaseFirestore.getInstance() }
 
     private val allSongs = listOf(
             Song("Wish You Were Here", "Pink Floyd", "21484de1-6bcd-42d1-812e-600a29e1c473"),
@@ -36,6 +40,18 @@ class SongRepository {
             """.trimIndent())
 
     fun getSongs() : Single<List<Song>> {
+
+        db.collection("songs")
+                .get()
+                .addOnSuccessListener { result ->
+                    for (document in result) {
+                        Log.d("SongRepository", "${document.id} => ${document.data}")
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("SongRepository", exception.localizedMessage)
+                }
+
         return Single.just(allSongs)
     }
 
@@ -44,8 +60,21 @@ class SongRepository {
     }
 
     fun getSong(songId: String) : Single<Song> {
+
+        db.collection("songs")
+                .document(songId)
+                .get()
+                .addOnSuccessListener { result ->
+                    Log.d("SongRepository", "${result.id} => ${result.data}")
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("SongRepository", exception.localizedMessage)
+                }
+
         return Single.just(allSongs.first {
             it.id == songId
         })
+
+
     }
 }
