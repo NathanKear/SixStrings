@@ -1,15 +1,36 @@
 package nk.sixstrings.common
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
+import android.view.animation.DecelerateInterpolator
 import android.view.animation.Transformation
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 
 
 class AnimatedExpandableConstraintLayout(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs) {
+
+    private sealed class CurrentState {
+        object Expanded : CurrentState()
+        object Collapsed : CurrentState()
+    }
+
+    private var currentState: CurrentState = CurrentState.Collapsed
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+
+        this.currentState = CurrentState.Collapsed
+        this.visibility = View.INVISIBLE
+        this.layoutParams.height = 1
+    }
 
     private fun getDesiredExpandedHeight(): Int {
         this.measure(
@@ -20,93 +41,70 @@ class AnimatedExpandableConstraintLayout(context: Context, attrs: AttributeSet) 
         return this.measuredHeight
     }
 
-    fun expand() {
+    fun expand(durationMillis: Long = 0) {
+
+        if (this.currentState == CurrentState.Expanded) return
+        this.currentState = CurrentState.Expanded
+
         val targetHeight = getDesiredExpandedHeight()
 
-        // Older versions of android (pre API 21) cancel animations for views with a height of 0.
-        this.layoutParams.height = 1
-        this.visibility = View.VISIBLE
-        val a = object : Animation() {
-            override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
-                this@AnimatedExpandableConstraintLayout.layoutParams.height = if (interpolatedTime == 1f)
-                    ConstraintLayout.LayoutParams.WRAP_CONTENT
-                else
-                    Math.max((targetHeight * interpolatedTime).toInt(), 1)
-                this@AnimatedExpandableConstraintLayout.requestLayout()
+        ValueAnimator.ofInt(1, targetHeight).let {
+            it.duration = durationMillis
+            it.interpolator = AccelerateInterpolator()
+
+            it.doOnStart {
+                this.visibility = View.VISIBLE
+                this.layoutParams.height = 1
+                this.requestLayout()
+                Log.d("Expand", "Start")
             }
 
-            override fun willChangeBounds(): Boolean {
-                return true
+            it.doOnEnd {
+                this.layoutParams.height = ConstraintLayout.LayoutParams.WRAP_CONTENT
+                this.requestLayout()
+                Log.d("Expand", "End")
             }
+
+            it.addUpdateListener {
+                this.layoutParams.height = it.animatedValue as Int
+                this.requestLayout()
+                Log.d("Expand", this.layoutParams.height.toString())
+            }
+
+            it.start()
         }
-
-        // 1dp/ms
-        a.duration = 300
-        this.startAnimation(a)
     }
 
-    fun collapse() {
+    fun collapse(durationMillis: Long = 0) {
+
+        if (this.currentState == CurrentState.Collapsed) return
+        this.currentState = CurrentState.Collapsed
+
         val initialHeight = this.measuredHeight
 
-        val a = object : Animation() {
-            override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
-                if (interpolatedTime == 1f) {
-                    this@AnimatedExpandableConstraintLayout.visibility = View.INVISIBLE
-                } else {
-                    this@AnimatedExpandableConstraintLayout.layoutParams.height = initialHeight - (initialHeight * interpolatedTime).toInt()
-                    this@AnimatedExpandableConstraintLayout.requestLayout()
-                }
+        ValueAnimator.ofInt(initialHeight, 1).let {
+            it.duration = durationMillis
+            it.interpolator = AccelerateInterpolator()
+
+            it.doOnStart {
+                Log.d("Collapse", "Start")
+                this.requestLayout()
             }
 
-            override fun willChangeBounds(): Boolean {
-                return true
+            it.doOnEnd {
+                this.layoutParams.height = 1
+                this.visibility = View.INVISIBLE
+                Log.d("Collapse", "End")
+                this.requestLayout()
             }
+
+            it.addUpdateListener {
+                this.layoutParams.height = it.animatedValue as Int
+                this.requestLayout()
+                Log.d("Collapse", this.layoutParams.height.toString())
+            }
+
+            it.start()
         }
-
-        // 1dp/ms
-        a.duration = 300
-        this.startAnimation(a)
     }
-
-//    fun expand(animationDurationMillis: Long) {
-//
-//        this.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-//        val height = this.measuredHeight.toFloat()
-////        val height = this.height.toFloat()
-////        this.layoutParams.width = WRAP_CONTENT
-////        MeasureSpec.makeMeasureSpec()
-//
-//        ValueAnimator.ofFloat(0f, height).let {
-//            this.visibility = View.VISIBLE
-//
-//            it.duration = animationDurationMillis
-//            it.interpolator = AccelerateInterpolator()
-//
-//            it.addUpdateListener {
-//                this.layoutParams.height = (it.animatedValue as Float).roundToInt()
-//            }
-//
-//            it.start()
-//        }
-//    }
-//
-//    fun collapse(animationDurationMillis: Long) {
-//
-//        this.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-//        val height = this.height.toFloat()
-//
-//        ValueAnimator.ofFloat(height, 0f).let {
-//            this.visibility = View.VISIBLE
-//
-//            it.duration = animationDurationMillis
-//            it.interpolator = AccelerateInterpolator()
-//
-//            it.addUpdateListener {
-//                this.layoutParams.height = (it.animatedValue as Float).roundToInt()
-//            }
-//
-//            it.start()
-//        }
-//
-//    }
 }
