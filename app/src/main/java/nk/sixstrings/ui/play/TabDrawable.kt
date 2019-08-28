@@ -19,7 +19,7 @@ class TabDrawable(private val context: Context, private val tab: String, private
 
     private fun Canvas.drawTab(tab: String, progress: Float) {
 
-        val strings = tab.split("\n")
+        val strings = tab.split("\\n")
         val numberOfStrings = strings.size
         val longestString = strings.maxBy {
             it.length
@@ -33,7 +33,7 @@ class TabDrawable(private val context: Context, private val tab: String, private
         val endX = -tabTextPaint.measureText(longestString)
         val xPos = linearlyInterpolate(startX, endX, progress)
 
-        tab.split("\n").forEachIndexed { index, string ->
+        strings.forEachIndexed { index, string ->
             this.drawText(string,
                     xPos,
                     (tabTextPaint.textSize * (index + 1)) + marginSize,
