@@ -26,6 +26,11 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
         object Hide : OptionsMenuState()
     }
 
+    sealed class SpeedToggleDialogState {
+        object Show : SpeedToggleDialogState()
+        object Hide : SpeedToggleDialogState()
+    }
+
     private val startProgress = 0.0f
     private val endProgress = 1.0f
     private val progressTickStep = 0.001f
@@ -36,12 +41,15 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
     val tabInfo = MutableLiveData<TabInfo>()
     val tabPlay = CombinedLiveData<Float, TabInfo, Pair<Float?, TabInfo?>>(playProgress, tabInfo) { playProgress, tabInfo -> Pair(playProgress, tabInfo) }
     val optionsMenuState = MutableLiveData<OptionsMenuState>()
+    val speedToggleDialogStage = MutableLiveData<SpeedToggleDialogState>()
+
     private val timer = Observable.interval(17, TimeUnit.MILLISECONDS)
 
     init {
         playState.value = PlayState.Pause
         playProgress.value = startProgress
         optionsMenuState.value = OptionsMenuState.Hide
+        speedToggleDialogStage.value = SpeedToggleDialogState.Hide
 
         fun tick(i: Long) {
 
@@ -112,6 +120,14 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
             OptionsMenuState.Show -> OptionsMenuState.Hide
             OptionsMenuState.Hide -> OptionsMenuState.Show
             null -> optionsMenuState.value
+        }
+    }
+
+    fun toggleSpeedDialog() {
+        speedToggleDialogStage.value = when (speedToggleDialogStage.value) {
+            SpeedToggleDialogState.Show -> SpeedToggleDialogState.Hide
+            SpeedToggleDialogState.Hide -> SpeedToggleDialogState.Show
+            null -> speedToggleDialogStage.value
         }
     }
 }

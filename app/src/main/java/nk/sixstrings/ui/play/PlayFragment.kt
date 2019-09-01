@@ -74,6 +74,10 @@ class PlayFragment : Fragment() {
                 vm.releaseProgress()
             }
         })
+
+        play_speed.setOnClickListener {
+            vm.toggleSpeedDialog()
+        }
     }
 
     private fun observeViewModel() {
@@ -140,6 +144,14 @@ class PlayFragment : Fragment() {
                         text = "Show Options..."
                     }
                     advance_options_collapsible.collapse(300)
+                }
+            }
+        })
+
+        vm.speedToggleDialogStage.observe(this, Observer {
+            when(it) {
+                PlayViewModel.SpeedToggleDialogState.Show -> {
+                    PlaySpeedPickerDialog().show(requireFragmentManager(), "dialog")
                 }
             }
         })
