@@ -1,6 +1,10 @@
 package nk.sixstrings.ui.play
 
+import android.app.Activity
+import android.app.Activity.*
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +20,7 @@ import nk.sixstrings.models.TabInfo
 import nk.sixstrings.util.OrdinalNumberSuffix
 import javax.inject.Inject
 import kotlin.math.roundToInt
+
 
 class PlayFragment : Fragment() {
 
@@ -151,8 +156,18 @@ class PlayFragment : Fragment() {
         vm.speedToggleDialogStage.observe(this, Observer {
             when(it) {
                 PlayViewModel.SpeedToggleDialogState.Show -> {
-                    PlaySpeedPickerDialog().show(requireFragmentManager(), "dialog")
+                    val playSpeedPickerDialog = PlaySpeedPickerDialog()
+                    playSpeedPickerDialog.setTargetFragment(this, PLAY_SPEED_DIALOG_REQUEST_CODE)
+                    playSpeedPickerDialog.show(requireFragmentManager(), "dialog") // TODO: Turn string into const
                 }
+            }
+        })
+
+        vm.playSpeed.observe(this, Observer {
+            play_speed.text = when(it) {
+                PlayViewModel.PlaySpeed.Slow -> "Slow"
+                PlayViewModel.PlaySpeed.Medium -> "Medium"
+                PlayViewModel.PlaySpeed.Fast -> "Fast"
             }
         })
     }
@@ -174,5 +189,28 @@ class PlayFragment : Fragment() {
     private fun updateTab(tabInfo: TabInfo, playProgress: Float) {
         val tabDrawing = TabDrawable(requireContext(), tabInfo.tab, playProgress, song_tab.height.toFloat())
         song_tab.setImageDrawable(tabDrawing)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == PLAY_SPEED_DIALOG_REQUEST_CODE
+            && resultCode == RESULT_OK
+            && data?.extras?.containsKey(PlaySpeedPickerDialog.SELECTED_PLAY_SPEED) == true) {
+
+            // TODO: Remove magic strings
+            val playSpeed: PlayViewModel.PlaySpeed = when(data?.extras?.getString(PlaySpeedPickerDialog.SELECTED_PLAY_SPEED)) {
+                "Slow" -> PlayViewModel.PlaySpeed.Slow
+                "Medium" -> PlayViewModel.PlaySpeed.Medium
+                "Fast" -> PlayViewModel.PlaySpeed.Fast
+                else -> PlayViewModel.PlaySpeed.Medium
+            }
+
+            vm.setPlaySpeed(playSpeed)
+        }
+    }
+
+    companion object {
+        const val PLAY_SPEED_DIALOG_REQUEST_CODE = 1001
     }
 }
