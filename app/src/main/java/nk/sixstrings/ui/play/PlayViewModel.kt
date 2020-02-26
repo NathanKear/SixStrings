@@ -31,10 +31,21 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
         object Hide : SpeedToggleDialogState()
     }
 
+    sealed class DifficultyToggleDialogState {
+        object Show : DifficultyToggleDialogState()
+        object Hide : DifficultyToggleDialogState()
+    }
+
     sealed class PlaySpeed {
         object Slow : PlaySpeed()
         object Medium : PlaySpeed()
         object Fast : PlaySpeed()
+    }
+
+    sealed class PlayDifficulty {
+        object Easy : PlayDifficulty()
+        object Medium : PlayDifficulty()
+        object Hard : PlayDifficulty()
     }
 
     private val startProgress = 0.0f
@@ -48,7 +59,9 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
     val tabPlay = CombinedLiveData<Float, TabInfo, Pair<Float?, TabInfo?>>(playProgress, tabInfo) { playProgress, tabInfo -> Pair(playProgress, tabInfo) }
     val optionsMenuState = MutableLiveData<OptionsMenuState>()
     val speedToggleDialogStage = MutableLiveData<SpeedToggleDialogState>()
+    val difficultyToggleDialogStage = MutableLiveData<DifficultyToggleDialogState>()
     val playSpeed = MutableLiveData<PlaySpeed>()
+    val playDifficulty = MutableLiveData<PlayDifficulty>()
 
     private val timer = Observable.interval(17, TimeUnit.MILLISECONDS)
 
@@ -57,7 +70,9 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
         playProgress.value = startProgress
         optionsMenuState.value = OptionsMenuState.Hide
         speedToggleDialogStage.value = SpeedToggleDialogState.Hide
+        difficultyToggleDialogStage.value = DifficultyToggleDialogState.Hide
         playSpeed.value = PlaySpeed.Medium
+        playDifficulty.value = PlayDifficulty.Medium
 
         fun tick(i: Long) {
 
@@ -139,7 +154,19 @@ class PlayViewModel(private val playInteractor: PlayInteractor) : ViewModel() {
         }
     }
 
+    fun toggleDifficultyDialog() {
+        difficultyToggleDialogStage.value = when (difficultyToggleDialogStage.value) {
+            DifficultyToggleDialogState.Show -> DifficultyToggleDialogState.Hide
+            DifficultyToggleDialogState.Hide -> DifficultyToggleDialogState.Show
+            null -> difficultyToggleDialogStage.value
+        }
+    }
+
     fun setPlaySpeed(speed: PlaySpeed) {
         playSpeed.value = speed
+    }
+
+    fun setPlayDifficulty(difficulty: PlayDifficulty) {
+        playDifficulty.value = difficulty
     }
 }

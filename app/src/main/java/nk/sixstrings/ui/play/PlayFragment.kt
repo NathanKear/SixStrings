@@ -1,10 +1,8 @@
 package nk.sixstrings.ui.play
 
-import android.app.Activity
 import android.app.Activity.*
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -82,6 +80,10 @@ class PlayFragment : Fragment() {
 
         play_speed.setOnClickListener {
             vm.toggleSpeedDialog()
+        }
+
+        play_difficulty.setOnClickListener {
+            vm.toggleDifficultyDialog()
         }
     }
 
@@ -163,11 +165,29 @@ class PlayFragment : Fragment() {
             }
         })
 
+        vm.difficultyToggleDialogStage.observe(this, Observer {
+            when(it) {
+                PlayViewModel.DifficultyToggleDialogState.Show -> {
+                    val playDifficultyPickerDialog = PlayDifficultyPickerDialog()
+                    playDifficultyPickerDialog.setTargetFragment(this, PLAY_DIFFICULTY_DIALOG_REQUEST_CODE)
+                    playDifficultyPickerDialog.show(requireFragmentManager(), "dialog") // TODO: Turn string into const
+                }
+            }
+        })
+
         vm.playSpeed.observe(this, Observer {
             play_speed.text = when(it) {
                 PlayViewModel.PlaySpeed.Slow -> "Slow"
                 PlayViewModel.PlaySpeed.Medium -> "Medium"
                 PlayViewModel.PlaySpeed.Fast -> "Fast"
+            }
+        })
+
+        vm.playDifficulty.observe(this, Observer {
+            play_difficulty.text = when(it) {
+                PlayViewModel.PlayDifficulty.Easy -> "Easy"
+                PlayViewModel.PlayDifficulty.Medium -> "Medium"
+                PlayViewModel.PlayDifficulty.Hard -> "Hard"
             }
         })
     }
@@ -194,23 +214,36 @@ class PlayFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == PLAY_SPEED_DIALOG_REQUEST_CODE
-            && resultCode == RESULT_OK
-            && data?.extras?.containsKey(PlaySpeedPickerDialog.SELECTED_PLAY_SPEED) == true) {
+        if (resultCode != RESULT_OK) return
 
-            // TODO: Remove magic strings
-            val playSpeed: PlayViewModel.PlaySpeed = when(data?.extras?.getString(PlaySpeedPickerDialog.SELECTED_PLAY_SPEED)) {
-                "Slow" -> PlayViewModel.PlaySpeed.Slow
-                "Medium" -> PlayViewModel.PlaySpeed.Medium
-                "Fast" -> PlayViewModel.PlaySpeed.Fast
-                else -> PlayViewModel.PlaySpeed.Medium
+        when (requestCode) {
+            PLAY_SPEED_DIALOG_REQUEST_CODE -> {
+                // TODO: Remove magic strings
+                val playSpeed: PlayViewModel.PlaySpeed = when(data?.extras?.getString(PlaySpeedPickerDialog.SELECTED_PLAY_SPEED)) {
+                    "Slow" -> PlayViewModel.PlaySpeed.Slow
+                    "Medium" -> PlayViewModel.PlaySpeed.Medium
+                    "Fast" -> PlayViewModel.PlaySpeed.Fast
+                    else -> PlayViewModel.PlaySpeed.Medium
+                }
+
+                vm.setPlaySpeed(playSpeed)
             }
+            PLAY_DIFFICULTY_DIALOG_REQUEST_CODE -> {
+                // TODO: Remove magic strings
+                val playDifficulty: PlayViewModel.PlayDifficulty = when(data?.extras?.getString(PlayDifficultyPickerDialog.SELECTED_PLAY_DIFFICULTY)) {
+                    "Easy" -> PlayViewModel.PlayDifficulty.Easy
+                    "Medium" -> PlayViewModel.PlayDifficulty.Medium
+                    "Hard" -> PlayViewModel.PlayDifficulty.Hard
+                    else -> PlayViewModel.PlayDifficulty.Medium
+                }
 
-            vm.setPlaySpeed(playSpeed)
+                vm.setPlayDifficulty(playDifficulty)
+            }
         }
     }
 
     companion object {
         const val PLAY_SPEED_DIALOG_REQUEST_CODE = 1001
+        const val PLAY_DIFFICULTY_DIALOG_REQUEST_CODE = 1002
     }
 }
