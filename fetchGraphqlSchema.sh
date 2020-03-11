@@ -1,0 +1,1 @@
+./gradlew :app:downloadApolloSchema -Pcom.apollographql.apollo.endpoint=http://localhost:4000 -Pcom.apollographql.apollo.schema=src/main/graphql/nk/sixstrings/schema.json
