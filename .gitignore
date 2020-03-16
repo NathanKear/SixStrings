@@ -87,3 +87,6 @@ lint/tmp/
 
 # graphql
 app/src/main/graphql
+
+# macOS
+.DS_Store

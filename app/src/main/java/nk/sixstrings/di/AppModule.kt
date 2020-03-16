@@ -2,25 +2,17 @@ package nk.sixstrings.di
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.apollographql.apollo.ApolloClient
 import dagger.Module
 import dagger.Provides
-import nk.sixstrings.infrastructure.PlayInteractor
-import nk.sixstrings.infrastructure.SongListInteractor
-import nk.sixstrings.infrastructure.SongRepository
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import java.util.concurrent.TimeUnit
 import javax.inject.Provider
 import javax.inject.Singleton
 
 @Module
 class AppModule {
-
-    @Provides
-    fun provideSongRepository() = SongRepository()
-
-    @Provides
-    fun provideSongListInteractor(songRepository: SongRepository) = SongListInteractor(songRepository)
-
-    @Provides
-    fun providePlayInteractor(songRepository: SongRepository) = PlayInteractor(songRepository)
 
     /* Singleton factory that searches generated map for specific provider and
         uses it to get a ViewModel instance */
@@ -33,4 +25,26 @@ class AppModule {
             return requireNotNull(providers[modelClass as Class<out ViewModel>]).get() as T
         }
     }
+
+    @Provides
+    @Singleton
+    fun provideApolloClient(client: OkHttpClient) = ApolloClient
+        .builder()
+        .serverUrl("http://10.0.2.2:4000/")
+        .okHttpClient(client)
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor) = OkHttpClient
+        .Builder()
+        .readTimeout(5000, TimeUnit.MILLISECONDS)
+        .writeTimeout(10000, TimeUnit.MILLISECONDS)
+        .addInterceptor(httpLoggingInterceptor)
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideHttpLoggingInterceptor() = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger.DEFAULT)
+        .setLevel(HttpLoggingInterceptor.Level.BODY)
 }

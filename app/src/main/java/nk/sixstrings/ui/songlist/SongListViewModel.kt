@@ -11,11 +11,11 @@ class SongListViewModel constructor(private val songListInteractor: SongListInte
 
     init {
         fun getSongsSuccess(data: List<Song>) {
-            songs.value = data
+            songs.postValue(data)
         }
 
         fun getSongsFailure(throwable: Throwable) {
-            songs.value = emptyList()
+            songs.postValue(emptyList())
         }
 
         songListInteractor.getSongs().subscribe(
